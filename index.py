@@ -14,7 +14,7 @@ uberduck_auth = (os.getenv("UBERDUCK_API_KEYSECOND"), os.getenv("UBERDUCK_SECRET
 openai.organization = os.getenv("OPENAI_ORG")
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-adjectives = ["angry", "negative", "mean"]
+adjectives = ["shocking", "mischevious", "negative"]
 
 def ad_lib_response():
     irand = randrange(len(adjectives)-1)
@@ -22,10 +22,11 @@ def ad_lib_response():
 
 def give_conversation(topic):
     adjective = ad_lib_response()
+    prompt = "Give a fifteen response " + adjective + " conversation between SpongeBob SquarePants, Squidward Tentacles, and Patrick about " + topic
 
     response = openai.Completion.create(
         model="text-davinci-003",
-        prompt="Give a one response " + adjective + " conversation between SpongeBob SquarePants and Patrick about " + topic,
+        prompt=prompt,
         temperature=1,
         max_tokens=256,
         top_p=1,
@@ -65,18 +66,23 @@ def main():
     convo_arr = list(filter(None, convo_arr))
     audio_urls = []
 
-    for line in convo_arr:
-        print(line)
+    sleep(2)
+    print("Generating conversation...")
 
+    for line in convo_arr:
         pieces = line.split(": ")
         name = pieces[0]
 
         if name.lower() == 'spongebob':
-            x = generate_tts("dadf8599-cc2a-44e0-a375-d18bec0b7811", pieces[1])
+            x = generate_tts(os.getenv("UBERDUCK_SPONGEBOB_UUID"), pieces[1])
             audio_urls.append(x)
         
         if name.lower() == 'patrick':
-            x = generate_tts("3b2755d1-11e2-4112-b75b-01c47560fb9c", pieces[1])
+            x = generate_tts(os.getenv("UBERDUCK_PATRICK_UUID"), pieces[1])
+            audio_urls.append(x)
+        
+        if name.lower() == 'squidward':
+            x = generate_tts(os.getenv("UBERDUCK_SQUIDWARD_UUID"), pieces[1])
             audio_urls.append(x)
     
 
@@ -94,10 +100,14 @@ def main():
         
         i += 1
     
+    print('Finished generating conversation!')
+    sleep(2)
+    
     for x in range(len(audio_urls)):
         filename = str(x) + "_speech.wav"
         wave_obj = sa.WaveObject.from_wave_file(filename)
         play_obj = wave_obj.play()
+        print(convo_arr[x])
         play_obj.wait_done()  # Wait until sound has finished playing
         
 
