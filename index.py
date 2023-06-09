@@ -1,5 +1,17 @@
 #!/usr/bin/python3
 
+"""
+@author Nam Tran (avocados23)
+@version 6.9.23
+
+This is a Python script that can generate a conversation between SpongeBob SquarePants, Patrick Star, and Squidward Tentacles, where
+you provide the topic to talk about at-hand through command line arguments. The conversation delivers the dialogues synchronously with
+the audio/speech component in the command line.
+
+However, I have not provided a code example that is tailored to be utilized with Unity Game Engine, like in the original AI Sponge, out
+of respect for their stream. That is up to anyone else who decides to fork this repository.
+"""
+
 from dotenv import load_dotenv
 from random import randrange
 from time import sleep
@@ -9,12 +21,12 @@ import simpleaudio as sa
 
 load_dotenv()
 
-uberduck_auth = (os.getenv("UBERDUCK_API_KEYSECOND"), os.getenv("UBERDUCK_SECRETSECOND"))
+uberduck_auth = (os.getenv("UBERDUCK_API_KEY"), os.getenv("UBERDUCK_SECRET"))
 
 openai.organization = os.getenv("OPENAI_ORG")
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
-adjectives = ["shocking", "mischevious", "negative"]
+adjectives = ["shocking", "mischevious", "negative", "raunchy", "curious", "funny", "devious"]
 
 def ad_lib_response():
     irand = randrange(len(adjectives)-1)
@@ -22,7 +34,7 @@ def ad_lib_response():
 
 def give_conversation(topic):
     adjective = ad_lib_response()
-    prompt = "Give a fifteen response " + adjective + " conversation between SpongeBob SquarePants, Squidward Tentacles, and Patrick about " + topic
+    prompt = "Give a very detailed " + adjective + " conversation between SpongeBob, Patrick Star, and Squidward about " + topic + " in 10 responses."
 
     response = openai.Completion.create(
         model="text-davinci-003",
@@ -66,14 +78,11 @@ def main():
     convo_arr = list(filter(None, convo_arr))
     audio_urls = []
 
-    sleep(2)
-    print("Generating conversation...")
-
     for line in convo_arr:
         pieces = line.split(": ")
         name = pieces[0]
 
-        if name.lower() == 'spongebob':
+        if name.lower() == 'squidward':
             x = generate_tts(os.getenv("UBERDUCK_SPONGEBOB_UUID"), pieces[1])
             audio_urls.append(x)
         
@@ -99,9 +108,6 @@ def main():
                 exit(1)
         
         i += 1
-    
-    print('Finished generating conversation!')
-    sleep(2)
     
     for x in range(len(audio_urls)):
         filename = str(x) + "_speech.wav"
